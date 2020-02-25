@@ -390,6 +390,23 @@ def instantiateVariableFont(varfont, location, inplace=False, overlap=True):
 	if "slnt" in location and "post" in varfont:
 		varfont["post"].italicAngle = max(-90, min(location["slnt"], 90))
 
+	if 'TSI1' in varfont and 'cvt' in varfont['TSI1'].extraPrograms:
+		vtt_cvt = varfont['TSI1'].extraPrograms['cvt']
+		cvt = dict(enumerate(varfont['cvt '].values))
+		vtt_cvt = vtt_cvt.splitlines()
+		for line_index, line in enumerate(vtt_cvt):
+			if ':' in line:
+				index, value, *other = line.strip().split(':')
+				value, *other_values = value.strip().split(' ')
+				if index.isdigit():
+					new_line = f'\t{int(index)}: {cvt[int(index)]}'
+					if other_values:
+						new_line += f' {" ".join(other_values)}'
+					if other:
+						new_line += ':'.join(other)
+					vtt_cvt[line_index] = new_line
+		varfont['TSI1'].extraPrograms['cvt'] = '\n'.join(vtt_cvt)
+
 	log.info("Removing variable tables")
 	for tag in ('avar','cvar','fvar','gvar','HVAR','MVAR','VVAR','STAT'):
 		if tag in varfont:
